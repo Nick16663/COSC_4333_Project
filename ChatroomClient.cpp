@@ -14,10 +14,12 @@
 
 using namespace std;
 
+/*
 typedef struct send_thread_data {
 	int thread_id;
 	int num_Of_Iterations;
 } sThreadData;
+*/
 
 typedef struct recv_thread_data {
 	int thread_id;
@@ -32,6 +34,8 @@ void *worker_thread(void *thread_arg)
 bool exit_flag = false;
 int client_socket;
 int port;
+char username[BUFFSIZE];
+int rc;
 
 int main(int argc, char const* argv[]) {
 	
@@ -39,19 +43,19 @@ int main(int argc, char const* argv[]) {
 	//cout << "IP Address is : " << argv[1] << endl;
 	//cout << "Port is : " << argv[2] << endl << endl;
 	
-	if(argc < 3) // if argc (length of argv) < 3, error & quit
+	if(argc != 3) // if argc (length of argv) != 3, error & quit
 	{
 		cout << endl << "ERROR: Invalid or Missing IP or Port" << endl << endl;
+		cout << endl << "Usage: " << argv[0] << " <hostname> <port>" << endl << endl;
 		return -1;
 	}
 
-	pthread_t threads[NUM_THREADS];
+	pthread_t threads[NUM_THREADS]; //create thread array
 
 	int valread, client_fd;
 	struct sockaddr_in client;
 
 	client_socket = 0;
-
 	
 	
 	if((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -63,32 +67,35 @@ int main(int argc, char const* argv[]) {
 	client.sin_addr.s_addr = atoi(argv[1]);
 	client.sin_port = atoi(argv[2]);
 	
+	
 	if((connect(client_socket, (struct sockaddr *)&client, sizeof(struct sockaddr_in)))==-1)
 	{
 		perror("connecting... ");
 		exit(-1);
 	}
-
+	
+	
 	//signal(SIGINT, catch_ctrl_c);
-	char name[BUFFSIZE];
-	cout << "Enter a username : ";
-	cin.getline(name, BUFFSIZE);
+	cout << endl << "==========================================" << endl << endl << "Enter a username : "; //make username
+	cin.getline(username, BUFFSIZE);
+
+	cout << "Username is : " << username << endl << endl; //debug print
 
 
-	//cout <<"main() : creating thread" << endl;
+	cout <<"main() : creating thread" << endl;
 		
 	//rc = pthread_create(&threads[i], NULL, worker_thread, &thread_params);
 
 	//sleep(0.2);
 
-	/*
+	
 	if(rc){
 		cout << "ERR: Unable to create thread, " << rc << endl;
 		exit(1);
 	}
 	
 	pthread_exit(NULL);
-	*/
+	
 }
 
 void catch_ctrl_c(int signal)
