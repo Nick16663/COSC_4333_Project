@@ -11,7 +11,7 @@
 #include <mutex>
 #define MAX_LEN 200
 #define NUM_COLORS 6
-#define PORTNUM 30000
+#define PORTNUM 50000 //default port
 
 using namespace std;
 
@@ -27,8 +27,22 @@ int eraseText(int cnt);
 void send_message(int client_socket);
 void recv_message(int client_socket);
 
-int main()
-{
+int main(int argc, char const* argv[]) {
+	
+	if(argc != 2) // if argc (length of argv) != 3, error & quit
+	{
+		cout << endl << "ERROR: Invalid or Missing Port" << endl;
+		cout << endl << "------ Specify port or type DEFAULT for default port " << PORTNUM << endl << endl;
+		cout << endl << "Usage: " << argv[0] << " <port>" << endl << endl;
+		return -1;
+	}
+	
+	//debug prints
+	//cout << "IP Address is : " << argv[1] << endl;
+	//cout << "Port is : " << argv[1] << endl << endl;
+
+	cout <<" \n\n\t  ====== Welcome to the Chatroom Lobby ======   \n" << endl;
+
 	if((client_socket=socket(AF_INET,SOCK_STREAM,0))==-1)
 	{
 		perror("socket: ");
@@ -37,7 +51,14 @@ int main()
 
 	struct sockaddr_in client;
 	client.sin_family=AF_INET;
-	client.sin_port=htons(PORTNUM); // Port no. of server
+
+	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
+		client.sin_port=htons((unsigned)atoi(argv[1])); // Port no. of server
+	else{
+		cout << "\n\t  === note: using default port "<< PORTNUM <<" ===" << endl << endl;
+		client.sin_port=htons(PORTNUM); // Port no. of server
+	}
+
 	client.sin_addr.s_addr=INADDR_ANY;
 	//client.sin_addr.s_addr=inet_addr("127.0.0.1"); // Provide IP address of server
 	bzero(&client.sin_zero,0);
@@ -54,11 +75,12 @@ int main()
 	send(client_socket,name,sizeof(name),0);
 
 	char chatroom[MAX_LEN];
-	cout<<"Enter your a chatroom : ";
+	cout<< endl << "   ==== Enter a chatroom name if it exists. If not, it will be created. ====" << endl;
+	cout<<"\nChatroom name : ";
 	cin.getline(chatroom,MAX_LEN);
 	send(client_socket,chatroom,sizeof(chatroom),0);
 
-	cout<<colors[NUM_COLORS-1]<<"\n\t  ====== Welcome to " << chatroom << " ======   "<<endl<<def_col;
+	cout<<colors[NUM_COLORS-1]<<"\n\n\t  ====== Welcome to " << chatroom << " ======   \n"<<endl<<def_col;
 
 	thread t1(send_message, client_socket);
 	thread t2(recv_message, client_socket);
@@ -98,7 +120,8 @@ int eraseText(int cnt)
 	for(int i=0; i<cnt; i++)
 	{
 		cout<<back_space;
-	}	
+	}
+	return 0;	
 }
 
 // Send message to everyone
