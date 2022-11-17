@@ -11,7 +11,7 @@
 #include <mutex>
 #define MAX_LEN 200
 #define NUM_COLORS 6
-#define PORTNUM 30000
+#define PORTNUM 50000 //default port
 
 using namespace std;
 
@@ -39,8 +39,20 @@ int broadcast_message(int num, int sender_id);
 void end_connection(int id);
 void handle_client(int client_socket, int id);
 
-int main()
-{
+int main(int argc, char const* argv[]) {
+	
+	if(argc != 2) // if argc (length of argv) != 2, error & quit
+	{
+		cout << endl << "ERROR: Invalid or Missing Port" << endl;
+		cout << endl << "------ Specify port or type DEFAULT for default port " << PORTNUM << endl << endl;
+		cout << endl << "Usage: " << argv[0] << " <port>" << endl << endl;
+		return -1;
+	}
+
+	//debug print
+	//cout << "Port is : " << argv[1] << endl << endl;
+	
+
 	int server_socket;
 	if((server_socket=socket(AF_INET,SOCK_STREAM,0))==-1)
 	{
@@ -50,7 +62,13 @@ int main()
 
 	struct sockaddr_in server;
 	server.sin_family=AF_INET;
-	server.sin_port=htons(PORTNUM);
+
+	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
+		server.sin_port=htons((unsigned)atoi(argv[1])); // set port no. of server
+	else
+		cout << "\n\t  === note: using default port "<< PORTNUM <<" ===" << endl;
+		server.sin_port=htons(PORTNUM); // set port no. of server
+
 	server.sin_addr.s_addr=INADDR_ANY;
 	bzero(&server.sin_zero,0);
 
@@ -70,7 +88,7 @@ int main()
 	int client_socket;
 	unsigned int len=sizeof(sockaddr_in);
 
-	cout<<colors[NUM_COLORS-1]<<"\n\t  ====== Chatroom Server Log Started ======   "<<endl<<def_col;
+	cout<<colors[NUM_COLORS-1]<<"\n\t  ====== Chatroom Server Log Started ======   \n"<<endl<<def_col;
 
 	while(1)
 	{
@@ -154,6 +172,7 @@ int broadcast_message(string message, int sender_id)
 			send(clients[i].socket,temp,sizeof(temp),0);
 		}
 	}		
+	return 0;	
 }
 
 int multicast_message(string message, int sender_id, string sender_rm)
@@ -166,7 +185,8 @@ int multicast_message(string message, int sender_id, string sender_rm)
 		{
 			send(clients[i].socket,temp,sizeof(temp),0);
 		}
-	}		
+	}
+	return 0;		
 }
 
 int multicast_message(int num, int sender_id, string sender_rm)
@@ -177,7 +197,8 @@ int multicast_message(int num, int sender_id, string sender_rm)
 		{
 			send(clients[i].socket,&num,sizeof(num),0);
 		}
-	}		
+	}	
+	return 0;		
 }
 
 // Broadcast a number to all clients except the sender
@@ -189,7 +210,8 @@ int broadcast_message(int num, int sender_id)
 		{
 			send(clients[i].socket,&num,sizeof(num),0);
 		}
-	}		
+	}	
+	return 0;		
 }
 
 void end_connection(int id)
