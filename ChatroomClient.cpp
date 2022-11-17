@@ -40,8 +40,8 @@ int rc;
 int main(int argc, char const* argv[]) {
 	
 	//debug prints
-	//cout << "IP Address is : " << argv[1] << endl;
-	//cout << "Port is : " << argv[2] << endl << endl;
+	cout << "IP Address is : " << argv[1] << endl;
+	cout << "Port is : " << argv[2] << endl << endl;
 	
 	if(argc != 3) // if argc (length of argv) != 3, error & quit
 	{
@@ -63,17 +63,22 @@ int main(int argc, char const* argv[]) {
 		return -1;
 	}
 
+	cout << "Client Socket creation success" << endl;
+
 	client.sin_family = AF_INET;
 	client.sin_addr.s_addr = atoi(argv[1]);
 	client.sin_port = atoi(argv[2]);
 	
 	
+	cout << "Before connect" << endl;
 	if((connect(client_socket, (struct sockaddr *)&client, sizeof(struct sockaddr_in)))==-1)
 	{
+		cout << "In connect if" << endl;
 		perror("connecting... ");
 		exit(-1);
 	}
 	
+	cout << "after connect if" << endl;
 	
 	//signal(SIGINT, catch_ctrl_c);
 	cout << endl << "==========================================" << endl << endl << "Enter a username : "; //make username
