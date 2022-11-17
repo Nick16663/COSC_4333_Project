@@ -66,11 +66,14 @@ int main(int argc, char const* argv[]) {
 	cout << "Client Socket creation success" << endl;
 
 	client.sin_family = AF_INET;
-	client.sin_addr.s_addr = atoi(argv[1]);
-	client.sin_port = atoi(argv[2]);
+	//client.sin_addr.s_addr = atoi(argv[1]);
+	client.sin_addr.s_addr=INADDR_ANY;
+	//client.sin_port = atoi(argv[2]);
+	client.sin_port=htons(atoi(argv[2]));
 	
 	
 	cout << "Before connect" << endl;
+	cout << client_socket << endl;
 	if((connect(client_socket, (struct sockaddr *)&client, sizeof(struct sockaddr_in)))==-1)
 	{
 		cout << "In connect if" << endl;
