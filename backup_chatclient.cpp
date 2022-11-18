@@ -82,11 +82,11 @@ int main(int argc, char const* argv[]) {
 
 	cout<<colors[NUM_COLORS-1]<<"\n\n\t  ====== Welcome to " << chatroom << " ======   \n"<<endl<<def_col;
 
-	thread t1(send_message, client_socket);
-	thread t2(recv_message, client_socket);
+	thread sendThread(send_message, client_socket);
+	thread recvThread(recv_message, client_socket);
 
-	t_send=move(t1);
-	t_recv=move(t2);
+	t_send=move(sendThread);
+	t_recv=move(recvThread);
 
 	if(t_send.joinable())
 		t_send.join();
