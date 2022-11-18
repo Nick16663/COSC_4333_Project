@@ -28,6 +28,8 @@ bool exit_flag=false;
 thread t_send, t_recv;
 int client_socket;
 string def_col="\033[0m";
+
+//colors for messages
 string colors[]={"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m"};
 
 void catch_ctrl_c(int signal);
@@ -62,16 +64,16 @@ int main(int argc, char const* argv[]) {
 	client.sin_family=AF_INET;
 
 	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
-		client.sin_port=htons((unsigned)atoi(argv[1])); // Port no. of server
+		client.sin_port=htons((unsigned)atoi(argv[1])); // Port number of server
 	else{
 		cout << "\n\t  === note: using default port "<< PORTNUM <<" ===" << endl << endl;
-		client.sin_port=htons(PORTNUM); // Port no. of server
+		client.sin_port=htons(PORTNUM); // Port number of server
 	}
 
 	client.sin_addr.s_addr=INADDR_ANY;
-	//client.sin_addr.s_addr=inet_addr("127.0.0.1"); // Provide IP address of server
 	bzero(&client.sin_zero,0);
 
+	//connects to the server
 	if((connect(client_socket,(struct sockaddr *)&client,sizeof(struct sockaddr_in)))==-1)
 	{
 		perror("connect: ");
@@ -79,18 +81,24 @@ int main(int argc, char const* argv[]) {
 	}
 	signal(SIGINT, catch_ctrl_c);
 	char name[MAX_LEN];
+
+	//prompt to enter username
 	cout<<"Enter your name : ";
 	cin.getline(name,MAX_LEN);
 	send(client_socket,name,sizeof(name),0);
 
 	char chatroom[MAX_LEN];
+	
+	//prompt to enter chatroom
 	cout<< endl << "   ==== Enter a chatroom name if it exists. If not, it will be created. ====" << endl;
 	cout<<"\nChatroom name : ";
 	cin.getline(chatroom,MAX_LEN);
 	send(client_socket,chatroom,sizeof(chatroom),0);
 
+	//chatroom welcome prompt
 	cout<<colors[NUM_COLORS-1]<<"\n\n\t  ====== Welcome to " << chatroom << " ======   \n"<<endl<<def_col;
 
+	//start sending thread and receiving thread
 	thread sendThread(send_message, client_socket);
 	thread recvThread(recv_message, client_socket);
 
@@ -141,7 +149,11 @@ void send_message(int client_socket)
 		cout<<colors[1]<<"You : "<<def_col;
 		char str[MAX_LEN];
 		cin.getline(str,MAX_LEN);
+
+		//sends message to server
 		send(client_socket,str,sizeof(str),0);
+
+		//exits when user types LEAVE
 		if(strcmp(str,"LEAVE")==0)
 		{
 			exit_flag=true;
@@ -164,6 +176,8 @@ void recv_message(int client_socket)
 		int bytes_received=recv(client_socket,name,sizeof(name),0);
 		if(bytes_received<=0)
 			continue;
+
+		//receives message from server
 		recv(client_socket,&color_code,sizeof(color_code),0);
 		recv(client_socket,str,sizeof(str),0);
 		eraseText(6);
