@@ -1,3 +1,12 @@
+/*
+
+COSC 4333 Project
+November 18, 2022
+Nicholas Wade
+Josh Mallari
+
+*/
+
 #include <bits/stdc++.h>
 #include <sys/types.h>
 #include <sys/socket.h>
