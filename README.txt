@@ -41,7 +41,7 @@ The below example will run the chat server and bind it to port 55555.
 
 To exit or leave the chat server, type 
 
-	#exit
+	LEAVE
 
 or use keybind
 
