@@ -65,10 +65,11 @@ int main(int argc, char const* argv[]) {
 
 	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
 		server.sin_port=htons((unsigned)atoi(argv[1])); // set port no. of server
-	else
+	else{
 		cout << "\n\t  === note: using default port "<< PORTNUM <<" ===" << endl;
 		server.sin_port=htons(PORTNUM); // set port no. of server
-
+	}
+		
 	server.sin_addr.s_addr=INADDR_ANY;
 	bzero(&server.sin_zero,0);
 
