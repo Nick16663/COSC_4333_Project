@@ -40,7 +40,7 @@ vector<string> chatrooms;
 
 string def_col="\033[0m";
 
-//colors for different users
+//colors for different user messages
 string colors[]={"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m","\033[36m"};
 int seed=0;
 mutex cout_mtx,clients_mtx;
@@ -90,6 +90,7 @@ int main(int argc, char const* argv[]) {
 	server.sin_addr.s_addr=INADDR_ANY;
 	bzero(&server.sin_zero,0);
 
+	//binds socket
 	if((bind(server_socket,(struct sockaddr *)&server,sizeof(struct sockaddr_in)))==-1)
 	{
 		perror("bind error: ");
@@ -150,12 +151,15 @@ void set_name(int id, char name[])
 	}	
 }
 
+
+//assigns client to room
 void set_room(int id, char room[])
 {
 	for(int i=0; i<clients.size(); i++)
 	{
 			if(clients[i].id==id)	
-			{
+			{	
+				//assigns the client to the room
 				clients[i].chatroom=string(room);
 				for(int j = 0; j < chatrooms.size(); i++)
 					if(chatrooms.size() > 0 && clients[i].chatroom.compare(chatrooms[i]) == 0)
@@ -164,6 +168,7 @@ void set_room(int id, char room[])
 					}
 					else
 					{
+						//creates room if doesn't exist
 						chatrooms.push_back(clients[i].chatroom); 
 						cout << "Room created" << endl;
 					}
@@ -178,21 +183,6 @@ void shared_print(string str, bool endLine = true)
 	cout<<str;
 	if(endLine)
 			cout << endl;
-}
-
-// Broadcast message to all clients except the sender
-int broadcast_message(string message, int sender_id)
-{
-	char temp[MAX_LEN];
-	strcpy(temp,message.c_str());
-	for(int i = 0; i < clients.size(); i++)
-	{
-		if(clients[i].id != sender_id)
-		{
-			send(clients[i].socket,temp,sizeof(temp),0);
-		}
-	}		
-	return 0;	
 }
 
 // multicast a number to all clients except the sender
@@ -223,25 +213,13 @@ int multicast_message(int num, int sender_id, string sender_rm)
 	return 0;		
 }
 
-// Broadcast a number to all clients except the sender
-int broadcast_message(int num, int sender_id)
-{
-	for(int i = 0; i<clients.size(); i++)
-	{
-		if(clients[i].id != sender_id)
-		{
-			send(clients[i].socket,&num,sizeof(num),0);
-		}
-	}	
-	return 0;		
-}
-
 void end_connection(int id)
 {
 	for(int i = 0; i<clients.size(); i++)
 	{
 		if(clients[i].id == id)	
 		{
+			//cuts connection to the client
 			lock_guard<mutex> guard(clients_mtx);
 			clients[i].th.detach();
 			clients.erase(clients.begin()+i);
@@ -254,9 +232,13 @@ void end_connection(int id)
 void handle_client(int client_socket, int id)
 {
 	char name[MAX_LEN],str[MAX_LEN], chatroom[MAX_LEN];
+	
+	//receives name from client
 	recv(client_socket,name,sizeof(name),0);
 	set_name(id,name);	
 
+
+	//receives room from client
 	recv(client_socket,chatroom,sizeof(chatroom),0);
 	set_room(id,chatroom);
 
@@ -272,6 +254,8 @@ void handle_client(int client_socket, int id)
 		int bytes_received=recv(client_socket,str,sizeof(str),0);
 		if(bytes_received<=0)
 			return;
+
+		//if client requests to leave
 		if(strcmp(str,"LEAVE")==0)
 		{
 			// Display leaving message
@@ -283,6 +267,8 @@ void handle_client(int client_socket, int id)
 			end_connection(id);							
 			return;
 		}
+
+		//sends message to other clients in the chatroom
 		multicast_message(string(name), id, chatroom);					
 		multicast_message(id, id, chatroom);		
 		multicast_message(string(str), id, chatroom);
