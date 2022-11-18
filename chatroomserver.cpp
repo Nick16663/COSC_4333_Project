@@ -39,6 +39,8 @@ vector<string> chatrooms;
 
 
 string def_col="\033[0m";
+
+//colors for different users
 string colors[]={"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m","\033[36m"};
 int seed=0;
 mutex cout_mtx,clients_mtx;
@@ -108,12 +110,14 @@ int main(int argc, char const* argv[]) {
 
 	while(1)
 	{
+		//establish connection with client
 		if((client_socket=accept(server_socket,(struct sockaddr *)&client,&len)) == -1)
 		{
 			perror("accept error: ");
 			exit(-1);
 		}
 		seed++;
+		//starts client handler thread
 		thread t(handle_client,client_socket,seed);
 		lock_guard<mutex> guard(clients_mtx);
 		clients.push_back({seed, string("Anonymous"),client_socket,(move(t))});
