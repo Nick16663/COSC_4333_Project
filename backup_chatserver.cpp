@@ -37,8 +37,8 @@ mutex cout_mtx,clients_mtx;
 string color(int code);
 void set_name(int id, char name[]);
 void shared_print(string str, bool endLine);
-int broadcast_message(string message, int sender_id);
-int broadcast_message(int num, int sender_id);
+int multicast_message(string message, int sender_id, string sender_rm);
+int multicast_message(int num, int sender_id, string sender_rm);
 void end_connection(int id);
 void handle_client(int client_socket, int id);
 
@@ -53,7 +53,7 @@ int main(int argc, char const* argv[]) {
 	}
 
 	//debug print
-	cout << "Port is : " << argv[1] << endl << endl;
+	//cout << "Port is : " << argv[1] << endl << endl;
 	
 
 	int server_socket;
@@ -65,8 +65,9 @@ int main(int argc, char const* argv[]) {
 
 	struct sockaddr_in server;
 	server.sin_family=AF_INET;
-
-	cout << "Port is : " << server.sin_port << endl << endl;
+	
+	//debug print
+	//cout << "Port is : " << server.sin_port << endl << endl;
 
 	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
 		server.sin_port=htons((u_short)atoi(argv[1])); // set port no. of server
@@ -92,13 +93,13 @@ int main(int argc, char const* argv[]) {
 
 	struct sockaddr_in client;
 	int client_socket;
-	unsigned int len=sizeof(sockaddr_in);
+	unsigned int len = sizeof(sockaddr_in);
 
-	cout<<colors[NUM_COLORS-1]<<"\n\t  ====== Chatroom Server Log Started ======   \n"<<endl<<def_col;
+	cout << colors[NUM_COLORS-1] << "\n\t  ====== Chatroom Server Log Started ======   \n" << endl << def_col;
 
 	while(1)
 	{
-		if((client_socket=accept(server_socket,(struct sockaddr *)&client,&len))==-1)
+		if((client_socket=accept(server_socket,(struct sockaddr *)&client,&len)) == -1)
 		{
 			perror("accept error: ");
 			exit(-1);
@@ -163,7 +164,7 @@ void shared_print(string str, bool endLine = true)
 	lock_guard<mutex> guard(cout_mtx);
 	cout<<str;
 	if(endLine)
-			cout<<endl;
+			cout << endl;
 }
 
 // Broadcast message to all clients except the sender
@@ -171,9 +172,9 @@ int broadcast_message(string message, int sender_id)
 {
 	char temp[MAX_LEN];
 	strcpy(temp,message.c_str());
-	for(int i=0; i<clients.size(); i++)
+	for(int i = 0; i < clients.size(); i++)
 	{
-		if(clients[i].id!=sender_id)
+		if(clients[i].id != sender_id)
 		{
 			send(clients[i].socket,temp,sizeof(temp),0);
 		}
@@ -181,13 +182,14 @@ int broadcast_message(string message, int sender_id)
 	return 0;	
 }
 
+// multicast a number to all clients except the sender
 int multicast_message(string message, int sender_id, string sender_rm)
 {
 	char temp[MAX_LEN];
 	strcpy(temp,message.c_str());
-	for(int i=0; i<clients.size(); i++)
+	for(int i = 0; i < clients.size(); i++)
 	{
-		if(clients[i].id!=sender_id && clients[i].chatroom.compare(sender_rm) == 0)
+		if(clients[i].id != sender_id && clients[i].chatroom.compare(sender_rm) == 0)
 		{
 			send(clients[i].socket,temp,sizeof(temp),0);
 		}
@@ -195,11 +197,12 @@ int multicast_message(string message, int sender_id, string sender_rm)
 	return 0;		
 }
 
+// multicast a number to all clients except the sender
 int multicast_message(int num, int sender_id, string sender_rm)
 {
-	for(int i=0; i<clients.size(); i++)
+	for(int i = 0; i < clients.size(); i++)
 	{
-		if(clients[i].id!=sender_id && clients[i].chatroom.compare(sender_rm) == 0)
+		if(clients[i].id != sender_id && clients[i].chatroom.compare(sender_rm) == 0)
 		{
 			send(clients[i].socket,&num,sizeof(num),0);
 		}
@@ -210,9 +213,9 @@ int multicast_message(int num, int sender_id, string sender_rm)
 // Broadcast a number to all clients except the sender
 int broadcast_message(int num, int sender_id)
 {
-	for(int i=0; i<clients.size(); i++)
+	for(int i = 0; i<clients.size(); i++)
 	{
-		if(clients[i].id!=sender_id)
+		if(clients[i].id != sender_id)
 		{
 			send(clients[i].socket,&num,sizeof(num),0);
 		}
@@ -222,9 +225,9 @@ int broadcast_message(int num, int sender_id)
 
 void end_connection(int id)
 {
-	for(int i=0; i<clients.size(); i++)
+	for(int i = 0; i<clients.size(); i++)
 	{
-		if(clients[i].id==id)	
+		if(clients[i].id == id)	
 		{
 			lock_guard<mutex> guard(clients_mtx);
 			clients[i].th.detach();
@@ -267,9 +270,9 @@ void handle_client(int client_socket, int id)
 			end_connection(id);							
 			return;
 		}
-		multicast_message(string(name),id,chatroom);					
-		multicast_message(id,id,chatroom);		
-		multicast_message(string(str),id,chatroom);
-		shared_print(color(id)+name+" : "+def_col+str);		
+		multicast_message(string(name), id, chatroom);					
+		multicast_message(id, id, chatroom);		
+		multicast_message(string(str), id, chatroom);
+		shared_print(color(id) + name + " : " + def_col + str);		
 	}	
 }
