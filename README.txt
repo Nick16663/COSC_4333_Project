@@ -31,7 +31,6 @@ Following compilation, type the syntax
 to run the compiled programs.
 
 
-
 It would be preferred to run the server program first.
 
 The below example will run the chat server and bind it to port 55555.
