@@ -5,13 +5,20 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <queue>
 using namespace std;
 
 #define MAX_THREADS 30
 
+
+
 pthread_t threads[MAX_THREADS];
-int rc;
+int thread_index = 0;
+int listenerCheck;
+int dispatcherCheck;
 int server_socket;
+queue<int> client_queue;
+
 
 typedef struct listener_thread_data {
 	int arg_count;
@@ -19,12 +26,24 @@ typedef struct listener_thread_data {
 
 } listen_data_t;
 
+void print_queue(queue<int> q){
+	while(!q.empty()){
+		cout << q.front() << " ";
+		q.pop();
+	}
+	cout << endl;
+}
+
+
 void *listener_thread(void *thread_arg)
 {
+	/*
 	struct listener_thread_data *listener_args;
 	listener_args = (listener_thread_data *) thread_arg;
 	char const* port = listener_args->arg_var;
+	*/
 	
+
 	struct sockaddr_in client;
 	int client_socket;
 	unsigned int len = sizeof(sockaddr_in);
@@ -38,7 +57,12 @@ void *listener_thread(void *thread_arg)
 			exit(-1);
 		}else{
 			cout << "client accepted" << endl;
+			cout << "client socket: " << client_socket << endl;
+			client_queue.push(client_socket);
 		}
+
+		cout << "Current Queue: ";
+		print_queue(client_queue);
 
 	}
 
@@ -48,8 +72,19 @@ void *listener_thread(void *thread_arg)
 
 void *dispatcher_thread(void *thread_arg)
 {
+
+	//vector
+
+
 	while(true)
 	{
+		//if JOIN
+
+
+
+
+		//if EXIT
+
 
 	}	
 	pthread_exit(NULL);
@@ -63,7 +98,7 @@ void *chatAdmin_thread(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }
-
+/*
 void *chatAdminSend_thread(void *thread_arg)
 {
 	while(true)
@@ -81,7 +116,7 @@ void *chatAdminRecv_thread(void *thread_arg)
 	}
 	pthread_exit(NULL);
 }
-
+*/
 int main(int argc, char const* argv[]) {
 	
 	//Port Check
@@ -91,10 +126,6 @@ int main(int argc, char const* argv[]) {
 		cout << endl << "Usage: " << argv[0] << " <port>" << endl << endl;
 		return -1;
 	}
-
-
-
-
 
 	//while(true){
 		//int server_socket;
@@ -129,20 +160,33 @@ int main(int argc, char const* argv[]) {
 
 
 	//init vars
-	pthread_t threads[MAX_THREADS];
+	//pthread_t threads[MAX_THREADS];
 	
 	struct listener_thread_data listener;
 	listener.arg_count = argc;
 	listener.arg_var = argv[1];
 
-	rc = pthread_create(&threads[0], NULL, listener_thread, &listener);
 
-	if(rc)
+	listenerCheck = pthread_create(&threads[thread_index], NULL, listener_thread, &listener);
+	thread_index++;
+
+	if(listenerCheck)
 	{
-		cout << "ERR: Unable to create listener thread, " << rc << endl;
+		cout << "ERR: Unable to create listener thread, " << listenerCheck << endl;
 		exit(1);
 	}else{
 		cout << "Listener thread created" << endl;
+	}
+
+	dispatcherCheck = pthread_create(&threads[thread_index], NULL, dispatcher_thread, NULL);
+	thread_index++;
+
+	if(dispatcherCheck)
+	{
+		cout << "ERR: Unable to create dispatcher thread, " << dispatcherCheck << endl;
+		exit(1);
+	}else{
+		cout << "Dispatcher thread created" << endl;
 	}
 
 	while(true)
