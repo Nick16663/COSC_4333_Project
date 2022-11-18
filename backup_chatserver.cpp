@@ -24,12 +24,15 @@ struct terminal
 	string chatroom;
 };
 
+
 vector<terminal> clients;
+vector<string> chatrooms;
+
+
 string def_col="\033[0m";
 string colors[]={"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m","\033[36m"};
 int seed=0;
 mutex cout_mtx,clients_mtx;
-vector<string> chatrooms;
 
 string color(int code);
 void set_name(int id, char name[]);
@@ -50,7 +53,7 @@ int main(int argc, char const* argv[]) {
 	}
 
 	//debug print
-	//cout << "Port is : " << argv[1] << endl << endl;
+	cout << "Port is : " << argv[1] << endl << endl;
 	
 
 	int server_socket;
@@ -63,13 +66,15 @@ int main(int argc, char const* argv[]) {
 	struct sockaddr_in server;
 	server.sin_family=AF_INET;
 
+	cout << "Port is : " << server.sin_port << endl << endl;
+
 	if(argc = 2 && strcmp(argv[1], "DEFAULT") != 0 )
-		server.sin_port=htons((unsigned)atoi(argv[1])); // set port no. of server
+		server.sin_port=htons((u_short)atoi(argv[1])); // set port no. of server
 	else{
 		cout << "\n\t  === note: using default port "<< PORTNUM <<" ===" << endl;
 		server.sin_port=htons(PORTNUM); // set port no. of server
 	}
-		
+
 	server.sin_addr.s_addr=INADDR_ANY;
 	bzero(&server.sin_zero,0);
 
@@ -153,7 +158,7 @@ void set_room(int id, char room[])
 }
 
 // For synchronisation of cout statements
-void shared_print(string str, bool endLine=true)
+void shared_print(string str, bool endLine = true)
 {	
 	lock_guard<mutex> guard(cout_mtx);
 	cout<<str;
