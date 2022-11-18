@@ -99,7 +99,7 @@ int main(int argc, char const* argv[]) {
 // Handler for "Ctrl + C"
 void catch_ctrl_c(int signal) 
 {
-	char str[MAX_LEN]="#exit";
+	char str[MAX_LEN]="LEAVE";
 	send(client_socket,str,sizeof(str),0);
 	exit_flag=true;
 	t_send.detach();
@@ -133,7 +133,7 @@ void send_message(int client_socket)
 		char str[MAX_LEN];
 		cin.getline(str,MAX_LEN);
 		send(client_socket,str,sizeof(str),0);
-		if(strcmp(str,"#exit")==0)
+		if(strcmp(str,"LEAVE")==0)
 		{
 			exit_flag=true;
 			t_recv.detach();	
