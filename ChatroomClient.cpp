@@ -26,16 +26,80 @@ typedef struct recv_thread_data {
 	int num_Of_Iterations;
 } rThreadData;
 
-void *worker_thread(void *thread_arg)
-{
-	return NULL;
-}
-
 bool exit_flag = false;
 int client_socket;
 int port;
 char username[BUFFSIZE];
-int rc;
+int senderCheck;
+int recvCheck;
+int client_socket;
+
+void catch_ctrl_c(int signal)
+{
+	char str[BUFFSIZE] = "#exit";
+	send(client_socket, str, sizeof(str), 0);
+	exit_flag = true;
+	//t_send.detach();
+	//t_recv.detach();
+	close(client_socket);
+	exit(signal);
+}
+
+int eraseText(int cnt)
+{
+	char back_space = 8;
+	for(int i = 0; i < cnt; i++)
+	{
+		cout << back_space;
+	}
+
+	return 1;
+}
+
+void send_msg(void *thread_arg)
+{
+	while(true)
+	{
+		cout << INPUT_PROMPT;
+		char str[BUFFSIZE];
+		cin.getline(str, BUFFSIZE);
+		send(client_socket, str, sizeof(str), 0);
+		if(strcmp(str, "#exit") == 0)
+		{
+			exit_flag = true;
+			//t_recv.detach();
+			close(client_socket);
+			return;
+		}
+	}
+}
+
+void recv_message(void *thread_arg)
+{
+	while(true)
+	{
+		if(exit_flag)
+			return;
+
+		char name[BUFFSIZE], str[BUFFSIZE];
+		int bytes_recvd = recv(client_socket, name, sizeof(name), 0);
+
+		if(bytes_recvd <= 0)
+			continue;
+
+		recv(client_socket, str, sizeof(str), 0);
+
+		eraseText(6);
+
+		if(strcmp(name, "#NULL") != 0)
+			cout << name << " : " << str << endl;
+		else
+			cout << str << endl;
+
+		cout << INPUT_PROMPT;
+		fflush(stdout);
+	}
+}
 
 int main(int argc, char const* argv[]) {
 	
@@ -92,83 +156,31 @@ int main(int argc, char const* argv[]) {
 
 	cout <<"main() : creating thread" << endl;
 		
-	//rc = pthread_create(&threads[i], NULL, worker_thread, &thread_params);
+	senderCheck = pthread_create(&threads[0], NULL, send_msg, client_socket);
+
+	if(senderCheck){
+		cout << "ERR: Unable to create sender thread, " << senderCheck << endl;
+		exit(1);
+	}else{
+		cout << "Sender thread created" << endl;
+	}
+
+	recvCheck = pthread_create(&threads[1], NULL, recv_message, client_socket);
+
+	if(recvCheck){
+		cout << "ERR: Unable to create recv_message thread, " << recvCheck << endl;
+		exit(1);
+	}else{
+		cout << "recv_message thread created" << endl;
+	}
+
 
 	//sleep(0.2);
 
-	
-	if(rc){
-		cout << "ERR: Unable to create thread, " << rc << endl;
-		exit(1);
+	while(true){
+
 	}
-	
+
 	pthread_exit(NULL);
 	
-}
-
-void catch_ctrl_c(int signal)
-{
-	char str[BUFFSIZE] = "#exit";
-	send(client_socket, str, sizeof(str), 0);
-	exit_flag = true;
-	//t_send.detach();
-	//t_recv.detach();
-	close(client_socket);
-	exit(signal);
-}
-
-int eraseText(int cnt)
-{
-	char back_space = 8;
-	for(int i = 0; i < cnt; i++)
-	{
-		cout << back_space;
-	}
-
-	return 1;
-}
-
-void send_msg(int client_socket)
-{
-	while(true)
-	{
-		cout << INPUT_PROMPT;
-		char str[BUFFSIZE];
-		cin.getline(str, BUFFSIZE);
-		send(client_socket, str, sizeof(str), 0);
-		if(strcmp(str, "#exit") == 0)
-		{
-			exit_flag = true;
-			//t_recv.detach();
-			close(client_socket);
-			return;
-		}
-	}
-}
-
-void recv_message(int client_socket)
-{
-	while(true)
-	{
-		if(exit_flag)
-			return;
-
-		char name[BUFFSIZE], str[BUFFSIZE];
-		int bytes_recvd = recv(client_socket, name, sizeof(name), 0);
-
-		if(bytes_recvd <= 0)
-			continue;
-
-		recv(client_socket, str, sizeof(str), 0);
-
-		eraseText(6);
-
-		if(strcmp(name, "#NULL") != 0)
-			cout << name << " : " << str << endl;
-		else
-			cout << str << endl;
-
-		cout << INPUT_PROMPT;
-		fflush(stdout);
-	}
 }
